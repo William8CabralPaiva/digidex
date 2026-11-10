@@ -1,75 +1,44 @@
-# React + TypeScript + Vite
+# Digidex
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Enciclopédia de Digimon (estilo Pokédex) feita com React + TypeScript + Vite, criada para demonstrar arquitetura organizada e boas práticas. Os dados vêm da API pública [digi-api.com](https://digi-api.com).
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Explorar**: busca com debounce, filtros por nível e atributo, ordenação e paginação (estado salvo na URL).
+- **Detalhe**: informações, habilidades e linha de evolução do Digimon.
+- **Evolução**: árvore de evolução navegável.
+- **Favoritos**: salvos no `localStorage` e gerenciados com `useReducer`.
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19, React Router, styled-components, TypeScript, Vite e ESLint.
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Gerenciador de pacotes: Yarn (`yarn.lock`).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+yarn install
+yarn dev       # servidor de desenvolvimento
+yarn build     # tsc -b && vite build
+yarn lint      # eslint .
+yarn preview   # preview do build
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Arquitetura
 
 ```
+src/
+├── routes/          # createBrowserRouter (layout routes)
+├── layouts/         # SidebarLayout (com barra lateral) e FocusLayout (sem)
+├── screens/         # Explorer, Favorites, DigimonDetail, Evolution, Settings
+├── components/      # UI reutilizável (cards, badges, paginação, etc.)
+├── hooks/           # useAsync, useDebounce, useDigimonList, useDigimonDetail
+├── store/favorites/ # reducer + context + provider + hook dos favoritos
+├── services/        # cliente da API (com cache de detalhes)
+├── theme/           # tema do styled-components
+├── types/           # tipos de domínio
+└── utils/           # storage e helpers de Digimon
+```
+
+A barra lateral só aparece nas telas filhas de `SidebarLayout`; telas de foco (como o detalhe) usam `FocusLayout`.
