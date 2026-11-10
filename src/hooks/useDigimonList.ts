@@ -5,8 +5,7 @@ import { useAsync } from './useAsync';
 
 export function useDigimonList({ page, pageSize, name, level, attribute, sort }: DigimonQuery) {
   const fetcher = useCallback(
-    (signal: AbortSignal) =>
-      fetchDigimonPage({ page, pageSize, name, level, attribute, sort }, signal),
+    () => fetchDigimonPage({ page, pageSize, name, level, attribute, sort }),
     [page, pageSize, name, level, attribute, sort],
   );
 

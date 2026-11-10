@@ -11,16 +11,17 @@ interface AsyncState<T> {
  * Enquanto a nova requisição não resolve, `isLoading` é true e `data` mantém o
  * último resultado, o que evita "piscar" a tela ao paginar.
  */
-export function useAsync<T>(fetcher: (signal: AbortSignal) => Promise<T>) {
+export function useAsync<T>(fetcher: () => Promise<T>) {
   const [state, setState] = useState<AsyncState<T>>({ source: null });
 
   useEffect(() => {
-    const controller = new AbortController();
+    // Descarta respostas de uma requisição que já foi substituída
+    let active = true;
 
-    fetcher(controller.signal)
-      .then((data) => setState({ source: fetcher, data }))
+    fetcher()
+      .then((data) => active && setState({ source: fetcher, data }))
       .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
+        if (!active) return;
         setState((previous) => ({
           source: fetcher,
           data: previous.data,
@@ -28,7 +29,9 @@ export function useAsync<T>(fetcher: (signal: AbortSignal) => Promise<T>) {
         }));
       });
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, [fetcher]);
 
   const isLoading = state.source !== fetcher;

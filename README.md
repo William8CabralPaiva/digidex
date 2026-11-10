@@ -11,7 +11,7 @@ Enciclopédia de Digimon (estilo Pokédex) feita com React + TypeScript + Vite, 
 
 ## Stack
 
-React 19, React Router, styled-components, TypeScript, Vite e ESLint.
+React 19, React Router, styled-components, Axios, TypeScript, Vite e ESLint.
 
 ## Scripts
 

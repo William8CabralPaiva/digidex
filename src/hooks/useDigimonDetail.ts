@@ -4,7 +4,7 @@ import { setLastViewedId } from '../utils/storage';
 import { useAsync } from './useAsync';
 
 export function useDigimonDetail(id: number) {
-  const fetcher = useCallback((signal: AbortSignal) => fetchDigimon(id, signal), [id]);
+  const fetcher = useCallback(() => fetchDigimon(id), [id]);
   const { data, error, isLoading } = useAsync(fetcher);
 
   useEffect(() => {

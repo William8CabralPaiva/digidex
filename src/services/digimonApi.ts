@@ -5,8 +5,7 @@ import type {
   DigimonSummary,
   EvolutionLink,
 } from '../types/digimon';
-
-const BASE_URL = 'https://digi-api.com/api/v1';
+import { api } from './api';
 
 interface RawEvolution {
   id: number;
@@ -49,24 +48,13 @@ function fetchIndex(level?: string, attribute?: string): Promise<IndexItem[]> {
   if (level) params.set('level', level);
   if (attribute) params.set('attribute', attribute);
 
-  // Sem sinal de aborto: a requisição é compartilhada entre chamadas
-  const promise = request<RawPage>(`/digimon?${params}`).then((raw) =>
-    (raw.content ?? []).map(({ id, name }) => ({ id, name })),
-  );
+  const promise = api
+    .get<RawPage>('/digimon', { params })
+    .then(({ data }) => (data.content ?? []).map(({ id, name }) => ({ id, name })));
   indexCache.set(key, promise);
   promise.catch(() => indexCache.delete(key));
 
   return promise;
-}
-
-async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, { signal });
-
-  if (!response.ok) {
-    throw new Error(`Falha ao consultar a API (${response.status})`);
-  }
-
-  return response.json() as Promise<T>;
 }
 
 const toEvolution = (raw: RawEvolution): EvolutionLink => ({
@@ -104,22 +92,26 @@ export function toSummary(detail: DigimonDetail): DigimonSummary {
   return { id, name, image, level, attribute };
 }
 
-export function fetchDigimon(id: number, signal?: AbortSignal): Promise<DigimonDetail> {
+export function fetchDigimon(id: number): Promise<DigimonDetail> {
   const cached = detailCache.get(id);
   if (cached) return cached;
 
-  const promise = request<RawDigimon>(`/digimon/${id}`, signal).then(toDetail);
+  // Sem AbortSignal: a promise é compartilhada via cache entre chamadas
+  const promise = api.get<RawDigimon>(`/digimon/${id}`).then(({ data }) => toDetail(data));
   detailCache.set(id, promise);
-  // Evita cachear falhas (inclusive requisições abortadas)
   promise.catch(() => detailCache.delete(id));
 
   return promise;
 }
 
-export async function fetchDigimonPage(
-  { page, pageSize, name, level, attribute, sort = 'asc' }: DigimonQuery,
-  signal?: AbortSignal,
-): Promise<DigimonPage> {
+export async function fetchDigimonPage({
+  page,
+  pageSize,
+  name,
+  level,
+  attribute,
+  sort = 'asc',
+}: DigimonQuery): Promise<DigimonPage> {
   const index = await fetchIndex(level, attribute);
   const term = name?.trim().toLowerCase();
 
@@ -133,7 +125,7 @@ export async function fetchDigimonPage(
 
   const start = (page - 1) * pageSize;
   const pageItems = matches.slice(start, start + pageSize);
-  const details = await Promise.all(pageItems.map((item) => fetchDigimon(item.id, signal)));
+  const details = await Promise.all(pageItems.map((item) => fetchDigimon(item.id)));
 
   return {
     items: details.map(toSummary),
