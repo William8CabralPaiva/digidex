@@ -1,7 +1,25 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+﻿import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'happy-dom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/main.tsx',
+        'src/test/**',
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.d.ts',
+        'src/types/**',
+      ],
+      reporter: ['text', 'html'],
+    },
+  },
 })
